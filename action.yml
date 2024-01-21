@@ -1,0 +1,30 @@
+description: 'Check if tag exists'
+branding:
+  icon: 'arrow-right-circle'
+  color: 'gray-dark'
+
+inputs:
+  tag:
+    description: 'tag name for your release'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: check runner
+      if: ${{ runner.os != 'Linux' }}
+      shell: bash
+      run: |
+        echo "::error title=wrong runner os error hint::only Linux is supported"
+        exit 1
+    - name: check tag
+      shell: bash
+      run: |
+        RES=$(git ls-remote https://github.com/${{ github.repository }}.git --tags ${{ inputs.tag }})
+        if [ -z "$RES" ]; then
+          echo 'tag_exists=false' >> $GITHUB_ENV
+          echo 'tag ${{ inputs.tag }} is available' >> $GITHUB_STEP_SUMMARY
+        else
+          echo 'tag_exists=true' >> $GITHUB_ENV
+          echo 'tag ${{ inputs.tag }} exists' >> $GITHUB_STEP_SUMMARY
+        fi
